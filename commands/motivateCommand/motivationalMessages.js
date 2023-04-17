@@ -1,4 +1,4 @@
-const motivationalMessages = [
+module.exports = motivationalMessages = [
   "Believe in yourself and all that you are. Know that there is something inside you that is greater than any obstacle.",
   "The only way to do great work is to love what you do. If you haven’t found it yet, keep looking. Don’t settle.",
   "Success is not final, failure is not fatal: it is the courage to continue that counts.",
