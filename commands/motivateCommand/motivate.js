@@ -32,7 +32,6 @@ class MotivateCommand extends Command {
 
     // Creates the message for the motivation reaction
     const index = Math.floor(Math.random() * messages.length);
-    console.log(index);
     const message = messages[index];
     const motivationMessage = `${memberGuildMember.displayName} is in worship!\n\n${message}`;
 
