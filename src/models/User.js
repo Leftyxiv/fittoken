@@ -5,6 +5,9 @@ const userSchema = new mongoose.Schema({
   discordId: {
     type: String,
     required: true
+  },
+  lastActivity: {
+    type: Date,
   }
 });
 

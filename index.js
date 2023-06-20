@@ -59,6 +59,7 @@ client.on('messageCreate', async function (message) {
       user = await User.create({
         name: username,
         discordId: id,
+        lastActivity: new Date(),
       });
     }
     const workout = message.content.replace(/^!log\s*/, '').split(' ');
@@ -79,6 +80,53 @@ client.on('messageCreate', async function (message) {
     const logs = await Log.find({ user: user, createdAt: { $gte: sevenDaysAgo } });
     const times = logs.reduce((accum, item) => accum += item.time, 0);
     message.reply(`${username}, you have logged ${times} minutes of exercise this week!`)
+  }
+});
+
+const updateUserActivity = async (message) => {
+  if (message.author.bot) return;
+
+  const { id } = message.author;
+  const user = await User.findByIdAndUpdate(id, {
+    lastActivity: new Date()
+  });
+  if (!user) {
+    user = await User.create({
+      name: username,
+      discordId: id,
+      lastActivity: new Date(),
+    });
+  }
+}
+
+client.on('message', async (message) => {
+ updateUserActivity(message);
+});
+
+client.on('messageReactionAdd', async () => {
+  updateUserActivity(message);
+});
+
+client.on('guildMemberRemove', async(member) => {
+  const user = await User.findByIdAndDelete(member.id);
+
+  const channel = member.guild.channels.cache.get('1099854206082486293')
+  if (channel) {
+    channel.send(`${user.username} has left the server and been removed from the database.`)
+  }
+});
+// admin channel message watcher
+client.on('messageCreate', async(message) => {
+  console.log('ugh')
+  if (message.channelId !== '1099854206082486293') {
+    return;
+  }
+  if(message.content.startsWith('!listusers')) {
+    const channel = client.channels.cache.get('1099854206082486293');
+    const users = await User.find({}).sort({ lastActivity: -1 });
+    for(let i = 0; i < users.length; ++i) {
+      await channel.send(`${user.name}: ${ user.hasOwnProperty('lastActivity') ? user.lastActivity : 'unkown' }`);
+    }
   }
 });
 
