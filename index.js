@@ -117,7 +117,6 @@ client.on('guildMemberRemove', async(member) => {
 });
 // admin channel message watcher
 client.on('messageCreate', async(message) => {
-  console.log('ugh')
   if (message.channelId !== '1099854206082486293') {
     return;
   }
