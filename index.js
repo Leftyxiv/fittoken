@@ -31,7 +31,7 @@ client.on('messageCreate', function (message) {
     let prompt = `You: ${message.content.replace(/^!chat\s*/, '')}\n`;
     try {
       (async () => {
-        const gptResponse = await openai.createCompletion({
+        let gptResponse = await openai.createCompletion({
           model: 'text-davinci-002',
           prompt: prompt,
           max_tokens: 60,
@@ -52,7 +52,7 @@ client.on('messageCreate', function (message) {
 client.on('messageCreate', async function (message) {
   if (message.author.bot) return;
   if (message.content.startsWith('!log')) {
-    const { id, username } = message.author;
+    let { id, username } = message.author;
 
     let user = await User.findOne({ discordId: id });
     if (!user) {
@@ -62,9 +62,9 @@ client.on('messageCreate', async function (message) {
         lastActivity: new Date(),
       });
     }
-    const workout = message.content.replace(/^!log\s*/, '').split(' ');
-    const type = isNaN(workout[0]) ? workout[0] : workout[1];
-    const time = isNaN(!workout[0]) ? Number(workout[0]) : Number(workout[1]);
+    let workout = message.content.replace(/^!log\s*/, '').split(' ');
+    let type = isNaN(workout[0]) ? workout[0] : workout[1];
+    let time = isNaN(!workout[0]) ? Number(workout[0]) : Number(workout[1]);
     if (workout.length !== 2 || typeof type !== 'string' || typeof time !== 'number') {
       return message.reply('There was an error! The command must be sent using either `!log time workout` or `!log workout time`');
     }
@@ -75,40 +75,41 @@ client.on('messageCreate', async function (message) {
     })
     message.reply(`Workout of ${type} successfully logged, ${username}!`)
     // // Send the message
-    const today = new Date();
-    const sevenDaysAgo = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 7);
-    const logs = await Log.find({ user: user, createdAt: { $gte: sevenDaysAgo } });
-    const times = logs.reduce((accum, item) => accum += item.time, 0);
+    let today = new Date();
+    let sevenDaysAgo = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 7);
+    let logs = await Log.find({ user: user, createdAt: { $gte: sevenDaysAgo } });
+    let times = logs.reduce((accum, item) => accum += item.time, 0);
     message.reply(`${username}, you have logged ${times} minutes of exercise this week!`)
   }
 });
 
-const updateUserActivity = async (message) => {
+const updateUserActivity = async function (message) {
   if (message.author.bot) return;
 
-  const { id } = message.author;
-  const user = await User.findByIdAndUpdate(id, {
-    lastActivity: new Date()
-  });
+  let { id } = message.author;
+  let user = await User.findOneAndUpdate(
+    { discordId: id },
+    { lastActivity: new Date() }
+  );
   if (!user) {
     user = await User.create({
-      name: username,
+      name: message.author.username,
       discordId: id,
       lastActivity: new Date(),
     });
   }
 }
 
-client.on('message', async (message) => {
+client.on('messageCreate', async function (message) {
  updateUserActivity(message);
 });
 
-client.on('messageReactionAdd', async () => {
+client.on('messageReactionAdd', async function (message) {
   updateUserActivity(message);
 });
 
-client.on('guildMemberRemove', async(member) => {
-  const user = await User.findByIdAndDelete(member.id);
+client.on('guildMemberRemove', async function (member) {
+  let user = await User.findOneAndDelete(member.id);
 
   const channel = member.guild.channels.cache.get('1099854206082486293')
   if (channel) {
@@ -116,15 +117,16 @@ client.on('guildMemberRemove', async(member) => {
   }
 });
 // admin channel message watcher
-client.on('messageCreate', async(message) => {
+client.on('messageCreate', async function (message) {
   if (message.channelId !== '1099854206082486293') {
     return;
   }
   if(message.content.startsWith('!listusers')) {
     const channel = client.channels.cache.get('1099854206082486293');
-    const users = await User.find({}).sort({ lastActivity: -1 });
-    for(let i = 0; i < users.length; ++i) {
-      await channel.send(`${user.name}: ${ user.hasOwnProperty('lastActivity') ? user.lastActivity : 'unkown' }`);
+    let users = await User.find({}).sort({ lastActivity: -1 });
+    for (let i = 0; i < users.length; ++i) {
+      const lastActivity = users[i].lastActivity instanceof Date ? users[i].lastActivity : 'unknown';
+      await channel.send(`${users[i].name}: ${lastActivity}`);
     }
   }
 });
